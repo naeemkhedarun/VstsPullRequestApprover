@@ -1,18 +1,18 @@
-Import-Module ./VstsPullRequest.psm1
+Import-Module ./VstsPullRequestApprover.psm1
 
 Describe "Set-PullRequestStatus" {
     Context "When approving a pull request and the reviewer has permission" {
-        Mock -ModuleName VstsPullRequest Invoke-VSTSRestMethod `
+        Mock -ModuleName VstsPullRequestApprover Invoke-VSTSRestMethod `
              -ParameterFilter { return $resourceUri.EndsWith("reviewers") } {
             return @(@{ value = @{ displayName = "Reviewer"; id = "ReviewerId"; } })
         }
 
-        Mock -ModuleName VstsPullRequest Invoke-VSTSRestMethod `
+        Mock -ModuleName VstsPullRequestApprover Invoke-VSTSRestMethod `
              -ParameterFilter { return $resourceUri.Contains("ReviewerId`?") } {
             $body | Should Be "{ vote: 10 }"
         }
 
-        Mock -ModuleName VstsPullRequest Invoke-VSTSRestMethod `
+        Mock -ModuleName VstsPullRequestApprover Invoke-VSTSRestMethod `
              -ParameterFilter { return $resourceUri.Contains("threads") } {
             $body.Contains("Build Succeeded: https://teamcity/`?build-id=1") | Should Be $true 
         }
@@ -27,7 +27,7 @@ Describe "Set-PullRequestStatus" {
     }
 
     Context "When approving a pull request and the reviewer doesn't have permission" {
-        Mock -ModuleName VstsPullRequest Invoke-VSTSRestMethod `
+        Mock -ModuleName VstsPullRequestApprover Invoke-VSTSRestMethod `
              -ParameterFilter { return $resourceUri.EndsWith("reviewers") } {
             return @(@{ value = @{ displayName = "DifferentReviewer"; id = "ReviewerId"; } })
         }
@@ -43,7 +43,7 @@ Describe "Set-PullRequestStatus" {
 }
 
 Describe "Get-VstsConnectionVariables" {
-    InModuleScope VstsPullRequest {
+    InModuleScope VstsPullRequestApprover {
         Context "When called with a valid repository uri" {
             $variables = Get-VstsConnectionVariables "https://domain.visualstudio.com/DefaultCollection/Project/_git/git-repository"
             
@@ -67,7 +67,7 @@ Describe "Get-VstsConnectionVariables" {
 }
 
 Describe "Get-VstsApiBaseUri" {
-    InModuleScope VstsPullRequest {
+    InModuleScope VstsPullRequestApprover {
         Context "When called with a valid repository uri" {
             $baseUri = Get-VstsApiBaseUri "https://domain.visualstudio.com/DefaultCollection/Project/_git/git-repository"
             
@@ -78,4 +78,4 @@ Describe "Get-VstsApiBaseUri" {
     }
 }
 
-Remove-Module VstsPullRequest
+Remove-Module VstsPullRequestApprover
