@@ -78,4 +78,42 @@ Describe "Get-VstsApiBaseUri" {
     }
 }
 
+Describe "Get-PullRequestId" {
+    InModuleScope VstsPullRequestApprover {
+        Context "When called with a valid pull request branch" {
+            $id = Get-PullRequestId "refs/pull/861/merge"
+            
+            It "Should return the id" {
+                $id | Should Be "861"
+            }
+        }
+
+        Context "When called with a versioned branch" {
+            $id = Get-PullRequestId "refs/head/release/1.0.0"
+            
+            It "Should return null" {
+                $id | Should Be $null
+            }
+        }
+        
+        Context "When called with a unversioned branch" {
+            $id = Get-PullRequestId "refs/head/develop"
+            
+            It "Should return null" {
+                $id | Should Be $null
+            }
+        }
+
+                
+        Context "When called with a feature branch" {
+            $id = Get-PullRequestId "refs/head/feature/12321-new-feature"
+            
+            It "Should return null" {
+                $id | Should Be $null
+            }
+        }
+    }
+}
+
+
 Remove-Module VstsPullRequestApprover

@@ -91,13 +91,23 @@ function Get-VstsApiBaseUri
     return "https://$($variables.Instance)/$($variables.TeamProject)/_apis/git/repositories/$($variables.Repository)"
 }
 
+function Get-PullRequestId
+{
+    param($branch)
+
+    return $branch | select-string -Pattern "refs/pull/(?<id>[0-9]+)/merge" `
+                   | Select-Object -ExpandProperty Matches `
+                   | ForEach-Object { $_.Groups["id"].Value } `
+                   | Select-Object -First 1
+}
+
 function Set-PullRequestStatus
 {
     param($vcsroot, $branch, $accessToken, $reviewerAccount, [bool]$approve, $buildUri)
 
     Write-Host "**** Setting build status for pull request ****"
 
-    $pullRequest = ($branch | select-string -Pattern "([0-9]+)").Matches.Value
+    $pullRequest = Get-PullRequestId $branch
 
     if(!$pullRequest)
     {
